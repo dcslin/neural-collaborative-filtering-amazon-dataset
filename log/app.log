@@ -1,0 +1,5 @@
+2019-03-28 22:43:29,117 - start param: hit@n: 30, n_customer to test: 100
+2019-03-28 22:47:06,592 - most similar model training hit@30: 0.570000; testing hit@30: 0.020000
+2019-03-28 22:47:06,598 - random model training hit@30: 0.000000; testing hit@30: 0.000000
+2019-03-28 22:47:06,618 - popular model training hit@30: 0.680000; testing hit@30: 0.020000
+2019-03-28 22:47:06,619 - done
