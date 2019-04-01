@@ -1,2 +1,4 @@
 amazon_video_games/*
 .DS_Store
+*.log
+*.png

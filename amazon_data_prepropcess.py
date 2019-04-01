@@ -20,6 +20,7 @@ def filter_k_core(df):
 
 def plot_product_id_per_sales(df):
     df2=df[['pid','rating']].groupby('pid').count().sort_values(by='rating', ascending=False)
+    #print(df2)
     # sample to plot, other wise not visible result
     df2.rating.sample(100).sort_values(ascending=False).plot.bar()
     plt.savefig(plot_dir+'product_sales_bar.png')
@@ -30,6 +31,7 @@ def plot_user_id_per_sales(df):
     # sample to plot, other wise not visible result
     df2.rating.sample(100).sort_values(ascending=False).plot.bar()
     plt.savefig(plot_dir+'user_sales_bar.png')
+
 
 def try_preprocess(source_fp, dest_fp, processor, force_run=False):
     if os.path.isfile(dest_fp) and not force_run:
@@ -42,14 +44,17 @@ def try_preprocess(source_fp, dest_fp, processor, force_run=False):
 def first_100_row(source, dest):
     pd.read_csv(source)[:100].to_csv(dest,index=None)
 
+
 def origin_reviews_rating_processor(s,d):
     (pd.read_json(s,lines=True)
     [['reviewerID','asin','overall','unixReviewTime']]
     .rename(columns={"reviewerID": "uid", "asin": "pid", "overall":"rating","unixReviewTime":"ts"})
     .to_csv(d,index=None))
 
+
 def slice_ratings(s,d):
-    pd.read_csv(s).sample(100000).to_csv(d,index=None)
+    #pd.read_csv(s).sample(10000).to_csv(d,index=None)
+    pd.read_csv(s).to_csv(d,index=None)
 
 
 def flatten_categories(x):
@@ -59,6 +64,7 @@ def flatten_categories(x):
         for item in inner_list:
             y.add(item)
     return '|'.join(y)
+
 
 def meta_set_from_ratings(s,d):
     ratings=pd.read_csv(s)
@@ -90,6 +96,16 @@ def rename_meta_header_movie(s,d):
     pd.read_csv(s).rename(columns= {'asin': 'movieid', 'categories': 'genres'}).to_csv(d,index=None)
 
 
+def top_download(df):
+    df2=df[['pid','rating']].groupby('pid').count().sort_values(by='rating', ascending=False).iloc[:10]
+    df3=pd.read_csv(amazon_data+'meta.csv')
+    df2=df2.merge(df3,how='left',left_on='pid',right_on='asin')[['rating','pid','categories']]
+    print(df2)
+
+
+def unique_users(df):
+    print(len(df.uid.unique()))
+    print(len(df.pid.unique()))
 
 
 
@@ -100,6 +116,7 @@ if __name__=="__main__":
     # parse json
     try_preprocess(amazon_data+'reviews_Video_Games_5.json', amazon_data+'ratings.csv',origin_reviews_rating_processor)
     try_preprocess(amazon_data+'meta_Video_Games.json',amazon_data+'meta.csv',origin_meta_processor)
+
 
     # gen small data
     try_preprocess(amazon_data+'ratings.csv',amazon_data+'ratings_small.csv',slice_ratings,True)
@@ -112,6 +129,13 @@ if __name__=="__main__":
 
 
     # data exploration long tail
-    df=pd.read_csv(amazon_data+'ratings.csv',names=['uid','pid','rating'])
-    plot_product_id_per_sales(df)
+    #df=pd.read_csv(amazon_data+'ratings.csv',names=['uid','pid','rating'])
+    df=pd.read_csv(amazon_data+'ratings.csv')
+
+    # count
+    #unique_users(df)
+
+    #print(df)
+    #plot_product_id_per_sales(df)
     #plot_user_id_per_sales(df)
+    #top_download(df)

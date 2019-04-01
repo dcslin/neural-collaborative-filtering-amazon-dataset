@@ -67,8 +67,13 @@ def get_user_matrix(df,pid_to_idx,product_mat):
 
 def accuracy_at_n(user_profile,user_history,user_test,product_mat,n=3):
     from sklearn.metrics.pairwise import cosine_similarity
-    training_ok=0
-    testing_ok=0
+    #training_ok=0
+    #testing_ok=0
+    total_train_precision=0
+    total_train_recall=0
+    total_test_precision=0
+    total_test_recall=0
+
     for k,v in user_profile.items():
         training_sims=[]
         testing_sims=[]
@@ -85,11 +90,33 @@ def accuracy_at_n(user_profile,user_history,user_test,product_mat,n=3):
         top_n_training=np.array(training_sims).argsort()[-n:][::-1]
         top_n_testing=np.array(testing_sims).argsort()[-n:][::-1]
 
-        if set(top_n_training) & user_history[k]:
-            training_ok+=1
-        if set(top_n_testing) & user_test[k]:
-            testing_ok+=1
-    return("most similar model training hit@%d: %f; testing hit@%d: %f"%(n,training_ok/len(user_profile),n,testing_ok/len(user_profile)))
+
+    for k,v in user_profile.items():
+        train_num_relevant = len( set(top_n_training) & set(user_history[k]) )
+        test_num_relevant = len( set(top_n_testing) & set(user_test[k]) )
+
+        train_precision=train_num_relevant/n
+        total_train_precision+=train_precision
+
+        train_recall=train_num_relevant/len(set(user_history[k]))
+        total_train_recall+=train_recall
+
+        test_precision=test_num_relevant/n
+        total_test_precision+=test_precision
+
+        test_recall=test_num_relevant/len(set(user_history[k]))
+        total_test_recall+=test_recall
+
+
+    #return("popular model training hit@%d: %f; testing hit@%d: %f"%(n,training_ok/len(user_profile),n,testing_ok/len(user_profile)))
+    return("most similar model training precision@%d: %f - recall: %f \n testing precision@%d: %f - recall: %f"%(n,total_train_precision/len(user_profile),total_train_recall/len(user_profile),
+        n,total_test_precision/len(user_profile),total_test_recall/len(user_profile) ))
+
+        #if set(top_n_training) & user_history[k]:
+            #training_ok+=1
+        #if set(top_n_testing) & user_test[k]:
+            #testing_ok+=1
+    #return("most similar model training hit@%d: %f; testing hit@%d: %f"%(n,training_ok/len(user_profile),n,testing_ok/len(user_profile)))
 
 
 def random_recommender_metric(user_profile,user_history,user_test,product_mat,n=3):
@@ -113,16 +140,32 @@ def random_recommender_metric(user_profile,user_history,user_test,product_mat,n=
 
 def popular_recommender_metric(train,pid_to_idx,user_history,user_test,n=3):
     top_n=get_top_n_popular_p_idx(train,n,pid_to_idx)
-    training_ok=0
-    testing_ok=0
+
+    total_train_precision=0
+    total_train_recall=0
+    total_test_precision=0
+    total_test_recall=0
 
     for k,v in user_profile.items():
-        if set(top_n) & set(user_history[k]):
-            training_ok+=1
-        if set(top_n) & set(user_test[k]):
-            testing_ok+=1
+        train_num_relevant = len( set(top_n) & set(user_history[k]) )
+        test_num_relevant = len( set(top_n) & set(user_test[k]) )
 
-    return("popular model training hit@%d: %f; testing hit@%d: %f"%(n,training_ok/len(user_profile),n,testing_ok/len(user_profile)))
+        train_precision=train_num_relevant/n
+        total_train_precision+=train_precision
+
+        train_recall=train_num_relevant/len(set(user_history[k]))
+        total_train_recall+=train_recall
+
+        test_precision=test_num_relevant/n
+        total_test_precision+=test_precision
+
+        test_recall=test_num_relevant/len(set(user_history[k]))
+        total_test_recall+=test_recall
+
+
+    #return("popular model training hit@%d: %f; testing hit@%d: %f"%(n,training_ok/len(user_profile),n,testing_ok/len(user_profile)))
+    return("popular model training precision@%d: %f - recall: %f \n testing precision@%d: %f - recall: %f"%(n,total_train_precision/len(user_profile),total_train_recall/len(user_profile),
+        n,total_test_precision/len(user_profile),total_test_recall/len(user_profile) ))
 
 
 
@@ -138,7 +181,9 @@ def get_user_to_prod_idx(df,pid_to_idx):
 def get_train_test(dfr,top_n_customer=3):
     most_active_customer=dfr[['uid','rating']].groupby('uid').count().sort_values(by='rating').tail(top_n_customer).index.values
     dfr=dfr[dfr.uid.isin(most_active_customer)].reset_index(drop=True)
-    idx = dfr.groupby('uid').apply(lambda x: x.sample(1, random_state = 0)).index.get_level_values(1)
+
+    idx = dfr.groupby('uid').apply(lambda x: x.sample(frac=0.1, random_state = 0)).index.get_level_values(1)
+
     test = dfr.iloc[idx, :].reset_index(drop = True)
     train = dfr.drop(idx).reset_index(drop = True)
     return train,test
@@ -150,11 +195,11 @@ def get_top_n_popular_p_idx(df,hit_at_n,pid_to_idx):
 
 if __name__=="__main__":
 
-    top_n_customer=100
+    top_n_customer=10
     hit_at_n=30
     vectorize_feature_mode='categories'
 
-    logging.info('start param: hit@n: %d, n_customer to test: %d, vectorize mode: %s'%(hit_at_n,top_n_customer,vectorize_feature_mode))
+    logging.info('start param: top n: %d, n_customer to test: %d, vectorize mode: %s'%(hit_at_n,top_n_customer,vectorize_feature_mode))
 
     amazon_data='amazon_video_games/'
     categories_to_idx=origin_id_to_idx(amazon_data+'meta_small.csv','categories')
@@ -191,10 +236,10 @@ if __name__=="__main__":
     res=accuracy_at_n(user_profile,user_history,user_test,product_mat, n=hit_at_n)
     logging.info(res)
 
-    res2=random_recommender_metric(user_profile,user_history,user_test,product_mat, n=hit_at_n)
-    logging.info(res2)
+    #res2=random_recommender_metric(user_profile,user_history,user_test,product_mat, n=hit_at_n)
+    #logging.info(res2)
 
-    res3=popular_recommender_metric(dfr,pid_to_idx,user_history,user_test, n=hit_at_n)
-    logging.info(res3)
+    #res3=popular_recommender_metric(dfr,pid_to_idx,user_history,user_test, n=hit_at_n)
+    #logging.info(res3)
 
     logging.info("done")
