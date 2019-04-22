@@ -142,6 +142,18 @@ if __name__=="__main__":
 
     df1=pd.read_json(amazon_data+'reviews_Video_Games_5.json',lines=True)
     #print(df1.head(1))
+
+    df_count=df1.groupby(by="reviewerID").count()['overall']
+    user_20_idx = df_count[df_count>20].index
+    df1_20=df1.set_index('reviewerID').loc[user_20_idx].reset_index()
+    df2=df1_20[['asin', 'overall', 'reviewerID', 'unixReviewTime']].rename(columns={"asin":"itemID","overall":"rating","reviewerID":"userID","unixReviewTime":"timestamp"})
+    df2['itemID']= pd.factorize(df2.itemID)[0]
+    df2['userID']= pd.factorize(df2.userID)[0]
+    df2.to_csv('video_games_20_ratings_5_fact.csv',index=None)
+
+
+
+
     df2=df1[['asin', 'overall', 'reviewerID', 'unixReviewTime']].rename(columns={"asin":"itemID","overall":"rating","reviewerID":"userID","unixReviewTime":"timestamp"})
     df2.to_csv('video_games_ratings_5.csv',index=None)
 
