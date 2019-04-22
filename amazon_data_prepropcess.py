@@ -119,8 +119,8 @@ if __name__=="__main__":
 
 
     # gen small data
-    try_preprocess(amazon_data+'ratings.csv',amazon_data+'ratings_small.csv',slice_ratings,True)
-    try_preprocess(amazon_data+'ratings_small.csv',amazon_data+'meta_small.csv',meta_set_from_ratings,True)
+    #try_preprocess(amazon_data+'ratings.csv',amazon_data+'ratings_small.csv',slice_ratings,True)
+    #try_preprocess(amazon_data+'ratings_small.csv',amazon_data+'meta_small.csv',meta_set_from_ratings,True)
 
     # gen non popular 
 
@@ -130,7 +130,7 @@ if __name__=="__main__":
 
     # data exploration long tail
     #df=pd.read_csv(amazon_data+'ratings.csv',names=['uid','pid','rating'])
-    df=pd.read_csv(amazon_data+'ratings.csv')
+    #df=pd.read_csv(amazon_data+'ratings.csv')
 
     # count
     #unique_users(df)
@@ -139,3 +139,12 @@ if __name__=="__main__":
     #plot_product_id_per_sales(df)
     #plot_user_id_per_sales(df)
     #top_download(df)
+
+    df1=pd.read_json(amazon_data+'reviews_Video_Games_5.json',lines=True)
+    #print(df1.head(1))
+    df2=df1[['asin', 'overall', 'reviewerID', 'unixReviewTime']].rename(columns={"asin":"itemID","overall":"rating","reviewerID":"userID","unixReviewTime":"timestamp"})
+    df2.to_csv('video_games_ratings_5.csv',index=None)
+
+    df2['itemID']= pd.factorize(df2.itemID)[0]
+    df2['userID']= pd.factorize(df2.userID)[0]
+    df2.to_csv('video_games_ratings_5_fact.csv',index=None)

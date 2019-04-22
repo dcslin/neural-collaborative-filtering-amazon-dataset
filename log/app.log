@@ -1,5 +1,4 @@
-2019-03-28 22:43:29,117 - start param: hit@n: 30, n_customer to test: 100
-2019-03-28 22:47:06,592 - most similar model training hit@30: 0.570000; testing hit@30: 0.020000
-2019-03-28 22:47:06,598 - random model training hit@30: 0.000000; testing hit@30: 0.000000
-2019-03-28 22:47:06,618 - popular model training hit@30: 0.680000; testing hit@30: 0.020000
-2019-03-28 22:47:06,619 - done
+2019-04-02 00:44:58,144 - start param: top n: 30, n_customer to test: 10, vectorize mode: categories
+2019-04-02 00:45:27,952 - most similar model training precision@30: 0.060000 - recall: 0.004073 
+ testing precision@30: 0.003333 - recall: 0.000144
+2019-04-02 00:45:27,952 - done
